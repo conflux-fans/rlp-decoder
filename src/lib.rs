@@ -8,23 +8,15 @@
 
 //! Recursive Length Prefix serialization crate.
 //!
-//! Allows encoding, decoding, and view onto rlp-slice
+//! Allows decoding, and view onto rlp-slice
 //!
 //! # What should you use when?
 //!
-//! ### Use `encode` function when:
-//! * You want to encode something inline.
-//! * You do not work on big set of data.
-//! * You want to encode whole data structure at once.
 //!
 //! ### Use `decode` function when:
 //! * You want to decode something inline.
 //! * You do not work on big set of data.
 //! * You want to decode whole rlp at once.
-//!
-//! ### Use `RlpStream` when:
-//! * You want to encode something in portions.
-//! * You encode a big set of data.
 //!
 //! ### Use `Rlp` when:
 //! * You need to handle data corruption errors.
@@ -40,22 +32,15 @@ extern crate alloc;
 mod error;
 mod impls;
 mod rlpin;
-mod stream;
 mod traits;
 
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
-use bytes::BytesMut;
-use core::borrow::Borrow;
-
-#[cfg(feature = "derive")]
-pub use rlp_derive::{RlpDecodable, RlpDecodableWrapper, RlpEncodable, RlpEncodableWrapper};
 
 pub use self::{
 	error::DecoderError,
 	rlpin::{PayloadInfo, Prototype, Rlp, RlpIterator},
-	stream::RlpStream,
-	traits::{Decodable, Encodable},
+	traits::Decodable,
 };
 
 /// The RLP encoded empty data (used to mean "null value").
@@ -84,30 +69,4 @@ where
 {
 	let rlp = Rlp::new(bytes);
 	rlp.as_list().expect("trusted rlp should be valid")
-}
-
-/// Shortcut function to encode structure into rlp.
-///
-/// ```
-/// let animal = "cat";
-/// let out = rlp::encode(&animal);
-/// assert_eq!(out, vec![0x83, b'c', b'a', b't']);
-/// ```
-pub fn encode<E>(object: &E) -> BytesMut
-where
-	E: Encodable,
-{
-	let mut stream = RlpStream::new();
-	stream.append(object);
-	stream.out()
-}
-
-pub fn encode_list<E, K>(object: &[K]) -> BytesMut
-where
-	E: Encodable,
-	K: Borrow<E>,
-{
-	let mut stream = RlpStream::new();
-	stream.append_list(object);
-	stream.out()
 }

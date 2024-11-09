@@ -1,8 +1,5 @@
-# RLP
+# RLP-decoder
 
-Recursive-length-prefix encoding, decoding, and compression in Rust.
+Recursive-length-prefix decoding in Rust.
 
-## License
-
-Unlike most parts of Parity, which fall under the GPLv3, this package is dual-licensed under MIT/Apache2 at the user's choice.
-Find the associated license files in this directory as `LICENSE-MIT` and `LICENSE-APACHE2` respectively.
+This project is forked from parity rlp library, and removed all the encoding functions. 

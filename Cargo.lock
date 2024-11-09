@@ -292,7 +292,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "54ed8ad1f3877f7e775b8cbf30ed1bd3209a95401817f19a0eb4402d13f8cf90"
 dependencies = [
- "rlp 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rlp",
 ]
 
 [[package]]
@@ -580,18 +580,6 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 [[package]]
 name = "rlp"
 version = "0.6.1"
-dependencies = [
- "bytes",
- "criterion",
- "hex-literal",
- "primitive-types",
- "rlp-derive",
- "rustc-hex",
-]
-
-[[package]]
-name = "rlp"
-version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fa24e92bb2a83198bb76d661a71df9f7076b8c420b8696e4d3d97d50d94479e3"
 dependencies = [
@@ -600,14 +588,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "rlp-derive"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "652db34deaaa57929e10ca18e5454a32cb0efc351ae80d320334bbf907b908b3"
+name = "rlp-decoder"
+version = "0.1.0"
 dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.87",
+ "bytes",
+ "criterion",
+ "hex-literal",
+ "primitive-types",
+ "rlp",
+ "rustc-hex",
 ]
 
 [[package]]

@@ -8,17 +8,14 @@
 
 #[cfg(not(feature = "std"))]
 use alloc::{borrow::ToOwned, boxed::Box, string::String, vec::Vec};
-use bytes::{Bytes, BytesMut};
 use core::{
-	iter::{empty, once},
 	mem, str,
 };
 
 use crate::{
 	error::DecoderError,
 	rlpin::Rlp,
-	stream::RlpStream,
-	traits::{Decodable, Encodable},
+	traits::Decodable,
 };
 
 pub fn decode_usize(bytes: &[u8]) -> Result<usize, DecoderError> {
@@ -38,22 +35,9 @@ pub fn decode_usize(bytes: &[u8]) -> Result<usize, DecoderError> {
 	}
 }
 
-impl<T: Encodable + ?Sized> Encodable for Box<T> {
-	fn rlp_append(&self, s: &mut RlpStream) {
-		Encodable::rlp_append(&**self, s)
-	}
-}
-
 impl<T: Decodable> Decodable for Box<T> {
 	fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
 		T::decode(rlp).map(Box::new)
-	}
-}
-
-impl Encodable for bool {
-	fn rlp_append(&self, s: &mut RlpStream) {
-		let as_uint = u8::from(*self);
-		Encodable::rlp_append(&as_uint, s);
 	}
 }
 
@@ -68,64 +52,23 @@ impl Decodable for bool {
 	}
 }
 
-impl<'a> Encodable for &'a [u8] {
-	fn rlp_append(&self, s: &mut RlpStream) {
-		s.encoder().encode_value(self);
-	}
-}
-
-impl Encodable for Vec<u8> {
-	fn rlp_append(&self, s: &mut RlpStream) {
-		s.encoder().encode_value(self);
-	}
-}
-
 impl Decodable for Vec<u8> {
 	fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
 		rlp.decoder().decode_value(|bytes| Ok(bytes.to_vec()))
 	}
 }
 
-impl Encodable for Bytes {
-	fn rlp_append(&self, s: &mut RlpStream) {
-		s.encoder().encode_value(self);
-	}
-}
+// impl Decodable for Bytes {
+// 	fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
+// 		rlp.decoder().decode_value(|bytes| Ok(Bytes::copy_from_slice(bytes)))
+// 	}
+// }
 
-impl Decodable for Bytes {
-	fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
-		rlp.decoder().decode_value(|bytes| Ok(Bytes::copy_from_slice(bytes)))
-	}
-}
-
-impl Encodable for BytesMut {
-	fn rlp_append(&self, s: &mut RlpStream) {
-		s.encoder().encode_value(self);
-	}
-}
-
-impl Decodable for BytesMut {
-	fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
-		rlp.decoder().decode_value(|bytes| Ok(bytes.into()))
-	}
-}
-
-impl<T> Encodable for Option<T>
-where
-	T: Encodable,
-{
-	fn rlp_append(&self, s: &mut RlpStream) {
-		match *self {
-			None => {
-				s.begin_list(0);
-			},
-			Some(ref value) => {
-				s.begin_list(1);
-				s.append(value);
-			},
-		}
-	}
-}
+// impl Decodable for BytesMut {
+// 	fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
+// 		rlp.decoder().decode_value(|bytes| Ok(bytes.into()))
+// 	}
+// }
 
 impl<T> Decodable for Option<T>
 where
@@ -141,16 +84,6 @@ where
 	}
 }
 
-impl Encodable for u8 {
-	fn rlp_append(&self, s: &mut RlpStream) {
-		if *self != 0 {
-			s.encoder().encode_iter(once(*self));
-		} else {
-			s.encoder().encode_iter(empty());
-		}
-	}
-}
-
 impl Decodable for u8 {
 	fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
 		rlp.decoder().decode_value(|bytes| match bytes.len() {
@@ -160,18 +93,6 @@ impl Decodable for u8 {
 			_ => Err(DecoderError::RlpIsTooBig),
 		})
 	}
-}
-
-macro_rules! impl_encodable_for_u {
-	($name: ident) => {
-		impl Encodable for $name {
-			fn rlp_append(&self, s: &mut RlpStream) {
-				let leading_empty_bytes = self.leading_zeros() as usize / 8;
-				let buffer = self.to_be_bytes();
-				s.encoder().encode_value(&buffer[leading_empty_bytes..]);
-			}
-		}
-	};
 }
 
 macro_rules! impl_decodable_for_u {
@@ -198,37 +119,14 @@ macro_rules! impl_decodable_for_u {
 	};
 }
 
-impl_encodable_for_u!(u16);
-impl_encodable_for_u!(u32);
-impl_encodable_for_u!(u64);
-impl_encodable_for_u!(u128);
-
 impl_decodable_for_u!(u16);
 impl_decodable_for_u!(u32);
 impl_decodable_for_u!(u64);
 impl_decodable_for_u!(u128);
 
-impl Encodable for usize {
-	fn rlp_append(&self, s: &mut RlpStream) {
-		(*self as u64).rlp_append(s);
-	}
-}
-
 impl Decodable for usize {
 	fn decode(rlp: &Rlp) -> Result<Self, DecoderError> {
 		u64::decode(rlp).map(|value| value as usize)
-	}
-}
-
-impl<'a> Encodable for &'a str {
-	fn rlp_append(&self, s: &mut RlpStream) {
-		s.encoder().encode_value(self.as_bytes());
-	}
-}
-
-impl Encodable for String {
-	fn rlp_append(&self, s: &mut RlpStream) {
-		s.encoder().encode_value(self.as_bytes());
 	}
 }
 
